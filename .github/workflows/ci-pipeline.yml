@@ -3,7 +3,7 @@ name: Test Github actions
 on:
   workflow_call:
     secrets:
-      secrets_git:
+      GITHUB_TOKEN:
         required: true
 
 jobs:
@@ -25,6 +25,6 @@ jobs:
       - name: Secret Detection
         uses: gitleaks/gitleaks-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets_git.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
           GITLEAKS_ENABLE_SUMMARY: false
