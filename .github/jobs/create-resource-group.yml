@@ -1,0 +1,21 @@
+2:Create_resource_group:
+  stage: Test
+  tags:
+    - shiftleft-azure-gitlab-runner
+  needs: [1:Setup-az-cli]
+  before_script: []
+  image: mcr.microsoft.com/azure-cli
+  script: |
+    az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+    az account set --subscription $ARM_SUBSCRIPTION_ID 
+    if ! [ -z "$SUB_MODULE_DIR" ]; then cd $SUB_MODULE_DIR; fi
+    current_timestamp=$(date '+%m%d%H%M%S%3N') 
+    echo "$current_timestamp" >> tests/vars.txt
+    # resources will be expired in 5 days
+    end_date=$(date -d@"$(( `date +%s`+5*24*60*60 ))" +'%Y-%m-%d')
+    az group create --location $LOCATION --resource-group ${name_prefix}${current_timestamp} --subscription $ARM_SUBSCRIPTION_ID --tags "EndDate=$end_date"
+  artifacts:
+    paths:
+      - tests/vars.txt
+      - $SUB_MODULE_DIR/tests/vars.txt
+    expire_in: 60 mins

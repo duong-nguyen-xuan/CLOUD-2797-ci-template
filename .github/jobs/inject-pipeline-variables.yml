@@ -1,0 +1,70 @@
+3:Inject_variable:
+  stage: Test
+  tags:
+  - shiftleft-azure-gitlab-runner
+  needs: [2:Create_resource_group]
+  before_script: []
+  dependencies: 
+        - 2:Create_resource_group
+  script: |
+      if ! [ -z "$SUB_MODULE_DIR" ]; then cd $SUB_MODULE_DIR; fi
+      current_timestamp=$(cat tests/vars.txt) 
+      cd tests/
+      cat vars/*
+      sed -i "s/PIPELINE_RESOURCE_GROUP_NAME/${name_prefix}${current_timestamp}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_RESOURCE_GROUP_NAME/${name_prefix}${current_timestamp}/g" dependencies.tf >> dependencies.tf
+      sed -i "s/PIPELINE_RESOURCE_NAME/${name_prefix}${current_timestamp}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_RESOURCE_NAME/${name_prefix}${current_timestamp}/g" dependencies.tf >> dependencies.tf
+
+      TEMP_PIPELINE_TAGS=$(echo ${TAGS} | sed -E 's/([^\]|^)"/\1\\"/g')
+      sed -i "s#PIPELINE_TAGS#${TEMP_PIPELINE_TAGS}#g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s#PIPELINE_TAGS#${TEMP_PIPELINE_TAGS}#g" dependencies.tf >> dependencies.tf
+      TEMP_LOC_ALIAS=$(echo $LOCATION_ALIAS_MAP | sed -E 's/([^\]|^)"/\1\\"/g')
+      sed -i "s#PIPELINE_LOCATION_ALIAS_MAP#${TEMP_LOC_ALIAS}#g" vars/*.tfvars >> vars/input.tfvars
+      TEMP_RES_ALIAS=$(echo $RESOURCE_ALIAS_MAP | sed -E 's/([^\]|^)"/\1\\"/g')
+      sed -i "s#PIPELINE_RESOURCE_ALIAS_MAP#${TEMP_RES_ALIAS}#g" vars/*.tfvars >> vars/input.tfvars
+
+      sed -i "s/PIPELINE_LOCATION/$PRIMARY_LOCATION/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_LOCATION/$PRIMARY_LOCATION/g" dependencies.tf >> dependencies.tf
+
+      sed -i "s/PIPELINE_SECONDARY_LOCATION/${SECONDARY_LOCATION}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_SECONDARY_LOCATION/${SECONDARY_LOCATION}/g" dependencies.tf >> dependencies.tf
+
+      sed -i "s/PIPELINE_SUBSCRIPTION_ID/${ARM_SUBSCRIPTION_ID}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_SUBSCRIPTION_ID/${ARM_SUBSCRIPTION_ID}/g" dependencies.tf >> dependencies.tf
+      sed -i "s/PIPELINE_ENVIRONMENT/${ENVIRONMENT}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_ENVIRONMENT/${ENVIRONMENT}/g" dependencies.tf >> dependencies.tf
+
+      sed -i "s/PIPELINE_AAD_GROUP_NAME/${AAD_GROUP_NAME}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_AAD_GROUP_NAME/${AAD_GROUP_NAME}/g" dependencies.tf >> dependencies.tf
+
+      sed -i "s/PIPELINE_AAD_GROUP_ID/${AAD_GROUP_ID}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_AAD_GROUP_ID/${AAD_GROUP_ID}/g" dependencies.tf >> dependencies.tf
+
+      sed -i "s/PIPELINE_AD_CLIENT_ID/${ARM_CLIENT_ID}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_AD_CLIENT_ID/${ARM_CLIENT_ID}/g" dependencies.tf >> dependencies.tf
+      
+      sed -i "s/PIPELINE_AD_CLIENT_SECRET/${ARM_CLIENT_SECRET}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_AD_CLIENT_SECRET/${ARM_CLIENT_SECRET}/g" dependencies.tf >> dependencies.tf
+
+      sed -i "s/PIPELINE_AD_TENANT_DOMAIN/${ARM_TENANT_DOMAIN}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_AD_TENANT_DOMAIN/${ARM_TENANT_DOMAIN}/g" dependencies.tf >> dependencies.tf
+
+      sed -i "s/PIPELINE_AD_TENANT_ID/${ARM_TENANT_ID}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_AD_TENANT_ID/${ARM_TENANT_ID}/g" dependencies.tf >> dependencies.tf
+
+      sed -i "s/PIPELINE_GITLAB_RUNNER_TOKEN/${GITLAB_RUNNER_TOKEN}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_GITLAB_RUNNER_TOKEN/${GITLAB_RUNNER_TOKEN}/g" dependencies.tf >> dependencies.tf
+
+      sed -i "s/PIPELINE_IPV4_ADDRESS/${PIPELINE_IPV4_ADDRESS}/g" vars/*.tfvars >> vars/input.tfvars
+      sed -i "s/PIPELINE_IPV4_ADDRESS/${PIPELINE_IPV4_ADDRESS}/g" dependencies.tf  >> dependencies.tf
+      echo "************* Start Printing input vars after injecting pipeline variable **************"
+      cat vars/*
+  artifacts:
+    paths:
+      #- tests/vars/*.tfvars
+      - tests
+      - $SUB_MODULE_DIR/tests
+    expire_in: 60 mins
+  
+

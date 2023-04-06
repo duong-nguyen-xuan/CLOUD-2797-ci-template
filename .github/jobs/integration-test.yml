@@ -1,0 +1,17 @@
+6:Integration_test:
+  stage: Test
+  tags:
+  - shiftleft-azure-gitlab-runner
+  needs: [5:Unit_test,4:Config_dependencies]
+  script: |
+      echo "Running Integration Test"
+      if [ -f "../meta.tf" ]; then
+        sed -i 's/backend/#backend/g' ../meta.tf
+      fi
+      if [ -z "$SUB_MODULE_DIR" ]; then go mod init "$WORKSPACE_NAME/tests"; else go mod init "$WORKSPACE_NAME/$SUB_MODULE_DIR/tests"; fi
+      go mod tidy
+      go test integration_test.go -timeout 60m -v
+  dependencies:
+         - 4:Config_dependencies
+  when: always
+

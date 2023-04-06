@@ -1,0 +1,15 @@
+5:Unit_test:
+  stage: Test
+  tags:
+  - shiftleft-azure-gitlab-runner
+  needs: [4:Config_dependencies]
+  script: |
+      echo "Running Unit Test Cases"
+      if [ -f "../meta.tf" ]; then
+        sed -i 's/backend/#backend/g' ../meta.tf
+      fi
+      if [ -z "$SUB_MODULE_DIR" ]; then go mod init "$WORKSPACE_NAME/tests"; else go mod init "$WORKSPACE_NAME/$SUB_MODULE_DIR/tests"; fi
+      go mod tidy
+      go test unit_test.go -timeout 10m -v  
+  dependencies:
+         - 4:Config_dependencies

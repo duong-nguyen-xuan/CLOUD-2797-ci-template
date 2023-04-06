@@ -1,0 +1,10 @@
+1:Setup-az-cli:
+  stage: Test
+  tags:
+  - shiftleft-azure-gitlab-runner
+  before_script: []
+  image: mcr.microsoft.com/azure-cli
+  script:
+    - az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+    - az account set --subscription $ARM_SUBSCRIPTION_ID 
+  

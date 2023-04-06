@@ -1,0 +1,23 @@
+7:Destroy_dependencies:
+  stage: Test
+  tags:
+  - shiftleft-azure-gitlab-runner
+  needs: 
+    - job: 6:Integration_test
+      optional: true
+    - job: 5:Unit_test
+      optional: false
+    - job: 3:Inject_variable
+      optional: false
+    - job: 4:Config_dependencies
+      optional: false
+  allow_failure: true
+  script: |
+       echo "Destroying resources"
+       terraform init
+       terraform destroy -auto-approve
+  dependencies:
+    - 3:Inject_variable
+    - 4:Config_dependencies
+  when: always
+  

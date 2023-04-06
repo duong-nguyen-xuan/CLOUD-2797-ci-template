@@ -1,0 +1,29 @@
+4:Config_dependencies:
+  stage: Test
+  tags:
+  - shiftleft-azure-gitlab-runner
+  needs: [3:Inject_variable]
+  allow_failure: true
+  script: |
+      terraform init
+      terraform plan -out=dependencies.tfplan
+      terraform apply dependencies.tfplan
+      terraform output -json > tf-dependencies-outputs.json
+        # inject tf dependency
+      apt-get update
+      apt-get install -y jq
+      dep_output_names=($(jq -r 'to_entries[] | "\(.key)"' tf-dependencies-outputs.json))
+        # Get values of Terraform outputs and convert space separated values to array
+      dep_output_values=($(jq -r 'to_entries[] | "\(.value | .value)"' tf-dependencies-outputs.json))
+      for ((n = 0; n < ${#dep_output_names[*]}; n++)); do
+          echo "Replacing DEPENDENCIES_${dep_output_names[n]}"
+          sed -i "s#DEPENDENCIES\_${dep_output_names[n]}#${dep_output_values[n]}#g" vars/*.tfvars >> vars/input.tfvars
+      done
+  dependencies:
+         - 3:Inject_variable
+  artifacts:
+    when: always
+    paths:
+      - tests
+      - $SUB_MODULE_DIR/tests
+    expire_in: 60 mins

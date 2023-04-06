@@ -1,0 +1,17 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH  == $CI_DEFAULT_BRANCH'
+
+policy_scan:
+ stage: policy_scan
+ tags:
+  - shiftleft-azure-gitlab-runner
+ before_script: []
+ image:
+  name: bridgecrew/checkov:$CHECKOV_VERSION
+  entrypoint:
+   - '/usr/bin/env'
+   - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+ script:
+  - checkov -d .

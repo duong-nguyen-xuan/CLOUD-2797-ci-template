@@ -1,0 +1,17 @@
+8:Destroy_resource_group:
+  stage: Test
+  tags:
+  - shiftleft-azure-gitlab-runner
+  before_script: []
+  needs: [2:Create_resource_group,7:Destroy_dependencies]
+  dependencies: 
+      - 2:Create_resource_group
+  image: mcr.microsoft.com/azure-cli
+  script: |
+     az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+     az account set --subscription $ARM_SUBSCRIPTION_ID 
+     if ! [ -z "$SUB_MODULE_DIR" ]; then cd $SUB_MODULE_DIR; fi
+     current_timestamp=$(cat tests/vars.txt)
+     az group delete -n ${name_prefix}${current_timestamp} --subscription $ARM_SUBSCRIPTION_ID --yes
+  when: always
+  
